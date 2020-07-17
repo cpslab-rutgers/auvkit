@@ -47,6 +47,7 @@ class Path:
                  sonar_baudrate=115200, confidence_threshold=90)
         def enable_gps(self)
         def add_atlas_sensor(self, identifier, serial_port)
+        def add_atlas_sensor_object(self, atlas_object)
         def set_stabilize_mode(self)
         def set_depth_hold(self)
         def start(self)
@@ -175,11 +176,18 @@ class Path:
 
     def add_atlas_sensor(self, identifier, serial_port):
         """
-        This function adds an AtlasScientific Sensor to the
+        This function adds an AtlasScientific Sensor to the path.
         :param identifier: A unique identifier for the AtlasScientific device.
         :param serial_port: The serial port the sensor is connected to.
         """
         self.data_fetcher.atlas_sensor_list.append(AtlasScientificSensor(identifier, serial_port))
+
+    def add_atlas_sensor_object(self, atlas_object):
+        """
+        This function adds an AtlasScientific Sensor to the path.
+        :param atlas_object: The AtlasScientificSensor object to add.
+        """
+        self.data_fetcher.atlas_sensor_list.append(atlas_object)
 
     def set_stabilize_mode(self):
         """
