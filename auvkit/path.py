@@ -7,6 +7,7 @@ from pymavlink import mavutil
 
 from auvkit.control import PID
 from auvkit.data_fetcher import DataFetcher, AtlasScientificSensor
+from auvkit.data_writer import csv_write
 from auvkit.helper import integrate, get_delta_time, calc_dist, angle_diff, haversine, bear_angle
 from auvkit.motor_controller import set_rc_channel_pwm, set_neutral
 from auvkit.ping import Ping
@@ -267,6 +268,15 @@ class Path:
 
         self.end_threads()
         return
+
+    def write_to_csv(self, filename=None):
+        """
+        This function starts writing data to a CSV.
+        :param filename: Optional, the filename of the CSV file. If not specified, it will be auto generated
+        based on time
+        :return: None
+        """
+        csv_write(self.data_fetcher, filename=filename)
 
     def push(self, path_node_):
         """
