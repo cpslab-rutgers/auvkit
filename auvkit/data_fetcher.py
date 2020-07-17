@@ -15,6 +15,10 @@ class AtlasScientificSensor:
 
     Methods:
         __init__(self)
+        read_line(self, ser)
+        read_lines(self, ser)
+        send_cmd(self, ser, cmd)
+        read_sensor(self, ser_reader)
     """
 
     def __init__(self, identifier, serial_port):
@@ -25,6 +29,81 @@ class AtlasScientificSensor:
         self.identifier = identifier
         self.serial_port = serial_port
         self.serial_communicator = serial.Serial(serial_port, 9600, timeout=0)
+
+    def read_line(self, ser):
+        """
+        This function reads a line from the Atlas scientific sensor.
+        :param ser: A Python Serial object.
+        :return: The line buffer.
+        """
+        lsl = len('\r')
+        line_buffer = []
+        while True:
+            next_char = ser.read(1)
+            if next_char == '':
+                break
+            line_buffer.append(next_char)
+            if (len(line_buffer) >= lsl and
+                    line_buffer[-lsl:] == list('\r')):
+                break
+        return ''.join(line_buffer)
+
+    def read_lines(self, ser):
+        """
+        This function reads lines from the Atlas scientific sensor.
+        :param ser: A Python Serial object.
+        :return: The lines or None if an exception occurs.
+        """
+        lines = []
+        try:
+            while True:
+                line = read_line(ser)
+                if not line:
+                    break
+                    ser.flush_input()
+                lines.append(line)
+            return lines
+
+        except serial.SerialException as e:
+            print("Error, ", e)
+            return None
+
+    def send_cmd(self, ser, cmd):
+        """
+        Send command to the Atlas Sensor.
+        Before sending, add Carriage Return at the end of the command.
+        :param ser: A Python Serial object.
+        :param cmd: The command to send to the sensor
+        :return: True if success, None if a SerialException occurs
+        """
+        buf = cmd + "\r"  # add carriage return
+        try:
+            ser.write(buf.encode('utf-8'))
+            return True
+        except serial.SerialException as e:
+            print("Error, ", e)
+            return None
+
+    def read_sensor(self):
+        """
+        This function reads data from an Atlas scientific sensor
+        :return: The lines read from the sensor
+        """
+
+        # Turn off continuous mode
+        self.send_cmd(self.serial_communicator, "C,0")
+
+        # Clear all previous data
+        time.sleep(1)
+        self.serial_communicator.flush()
+
+        self.send_cmd(self.serial_communicator, "R")
+        lines = self.read_lines(self.serial_communicator)
+        for i in range(len(lines)):
+            if lines[i][0] != '*':
+                return lines[i]
+
+        return lines
 
 
 class DataFetcher:
@@ -82,10 +161,6 @@ class DataFetcher:
         get_battery_remaining(self)
         get_time_remaining(self)
         get_charge_state(self)get_battery_matrix(self)
-        read_line(self, ser)
-        read_lines(self, ser)
-        send_cmd(self, ser, cmd)
-        read_sensor(self, ser_reader)
         get_header(self)
         __iter__(self)
         __next__(self)
@@ -520,83 +595,6 @@ class DataFetcher:
                 self.battery_msg.current_battery, self.battery_msg.current_consumed,
                 self.battery_msg.energy_consumed, self.battery_msg.battery_remaining]
 
-    def read_line(self, ser):
-        """
-        This function reads a line from the Atlas scientific sensor.
-        :param ser: A Python Serial object.
-        :return: The line buffer.
-        """
-        lsl = len('\r')
-        line_buffer = []
-        while True:
-            next_char = ser.read(1)
-            if next_char == '':
-                break
-            line_buffer.append(next_char)
-            if (len(line_buffer) >= lsl and
-                    line_buffer[-lsl:] == list('\r')):
-                break
-        return ''.join(line_buffer)
-
-    def read_lines(self, ser):
-        """
-        This function reads lines from the Atlas scientific sensor.
-        :param ser: A Python Serial object.
-        :return: The lines or None if an exception occurs.
-        """
-        lines = []
-        try:
-            while True:
-                line = read_line(ser)
-                if not line:
-                    break
-                    ser.flush_input()
-                lines.append(line)
-            return lines
-
-        except serial.SerialException as e:
-            print("Error, ", e)
-            return None
-
-    def send_cmd(self, ser, cmd):
-        """
-        Send command to the Atlas Sensor.
-        Before sending, add Carriage Return at the end of the command.
-        :param ser: A Python Serial object.
-        :param cmd: The command to send to the sensor
-        :return: True if success, None if a SerialException occurs
-        """
-        buf = cmd + "\r"  # add carriage return
-        try:
-            ser.write(buf.encode('utf-8'))
-            return True
-        except serial.SerialException as e:
-            print("Error, ", e)
-            return None
-
-    def read_sensor(self, ser_reader):
-        """
-        This function reads data from an Atlas scientific sensor
-        :param ser_reader: A Python Serial object.
-        :return: The lines read from the sensor
-        """
-        delaytime = 0.01
-
-        # Turn off continuous mode
-        self.send_cmd(ser_reader, "C,0")
-
-        # Clear all previous data
-        time.sleep(1)
-        ser_reader.flush()
-
-        self.send_cmd(ser_reader, "R")
-        lines = self.read_lines(ser_reader)
-        for i in range(len(lines)):
-            if lines[i][0] != '*':
-                return lines[i]
-
-        return lines
-
     def get_header(self):
         """
         This function returns a list of the columns for a CSV.
@@ -622,7 +620,7 @@ class DataFetcher:
     def __next__(self):
         if self.mavlink_is_done:
             if self.index < len(self.atlas_sensor_list):
-                self.return_val = self.read_sensor(self.atlas_sensor_list[self.index].serial_communicator)
+                self.return_val = self.atlas_sensor_list[self.index].read_sensor()
                 self.index += 1
             else:
                 raise StopIteration
@@ -645,5 +643,5 @@ class DataFetcher:
             else:
                 self.mavlink_is_done = True
                 self.index = 0
-                self.return_val = self.read_sensor(self.atlas_sensor_list[self.index].serial_communicator)
+                self.return_val = self.atlas_sensor_list[self.index].read_sensor()
         return self.return_val
