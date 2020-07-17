@@ -37,7 +37,7 @@ def create_csv(data_fetcher, filename):
     _csv_write(data_fetcher, filename)
 
 
-def csv_write(data_fetcher, filename=None):
+def csv_write(data_fetcher, filename):
     """
     This is the publicly called function to write data to a CSV.
     :param data_fetcher: A DataFetcher object which describes which data to write to the CSV.
