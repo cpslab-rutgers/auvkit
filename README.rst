@@ -28,4 +28,4 @@ Acknowledgements
 **********************
 
 This project was based off the work of Wahhaj Zahedi, Milos Seskar, Agam Modasiya, Karun Kanda, Archana Arjula,
-and Mohammad Nadeem under the guidance Mehdi Rahmati.
+and Mohammad Nadeem under the guidance Mehdi Rahmati and Prof. Dario Pompili.
