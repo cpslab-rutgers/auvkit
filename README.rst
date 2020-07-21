@@ -21,10 +21,15 @@ To get started, check out the examples in the ``examples/`` folder in this repo.
 
 Future Work
 ########
-Currently, we would like to add dynamic PID control to the library. We would also like to implement more sophisticated
-Kalman filters for localization techniques. Also, we would like to add an API for acoustic communication modems.
+Currently, the following bullets are desired:
 
-Unit tests are needed to be written.
+- Add dynamic PID control to the library.
+- Implement more sophisticated Kalman filters for localization techniques.
+- Add an API for acoustic communication modems.
+- Add functionality to spin the CSV writing function to another process and terminate once the path ends.
+- Add database functionality instead of just using CSVs. The database could be query-able and backed up.
+- Add functionality to read from the camera and get data from it, and integrate with current structure of code.
+- Unit tests are needed to be written! :)
 
 Acknowledgements
 **********************
